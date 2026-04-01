@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -11,6 +11,50 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet"></noscript>
 <style>
+/* Karakter hover'da göz kırpma efekti */
+
+/* Karakter seçilmeden uygulama içeriğini gizle */
+#app.char-select-hidden {
+  display: none !important;
+}
+
+/* Karakter hover'da göz kırpma efekti (düzeltildi) */
+
+/* Karakter hover'da göz kırpma efekti (stacking ve görünürlük düzeltildi) */
+.char-avatar.has-blink {
+  position: relative;
+  display: inline-block;
+  width: 64px;
+  height: 64px;
+}
+.char-avatar.has-blink img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.char-avatar.has-blink .char-base-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  opacity: 1;
+  transition: opacity 0.15s;
+}
+.char-avatar.has-blink .char-blink-img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s;
+}
+.char-avatar.has-blink:hover .char-blink-img {
+  opacity: 1;
+}
+.char-avatar.has-blink:hover .char-base-img {
+  opacity: 0;
+}
 :root {
   --font-romantic: 'Cormorant Garamond', serif;
   --font-romantic-display: 'EB Garamond', serif;
@@ -879,11 +923,312 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
 .toggle-track::after { content:''; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%; background:#a06030; transition:transform 0.25s, background 0.25s; }
 .toggle-switch input:checked + .toggle-track { background:rgba(40,100,40,0.18); border-color:#4a8a3a; }
 .toggle-switch input:checked + .toggle-track::after { transform:translateX(16px); background:#4a8a3a; }
+
+
+/* ===== KARAKTER SEÇİM MODALI ===== */
+#charSelectModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(10,4,0,0.78);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  min-height: 100vh;
+  min-width: 100vw;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+#charSelectModal.show { display: flex; animation: popupOverlayFade 0.22s ease-out; }
+#charSelectModal.show .char-select-content { animation: popupCardIn 0.34s cubic-bezier(0.2,0.9,0.24,1); }
+
+.char-select-content {
+  position: relative;
+  width: min(84vw, calc(78vh * 1462 / 667), 1320px);
+  max-width: 1320px;
+  max-height: 78vh;
+  aspect-ratio: 1462 / 667;
+  margin: 0 auto;
+  background: url('./asset/modal-bg.webp') center center / contain no-repeat;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  text-align: center;
+  box-shadow: none;
+}
+
+.char-select-inner {
+  position: absolute;
+  inset: 15% 13.5% 18%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.char-select-title {
+  font-family: var(--font-romantic-display);
+  font-size: clamp(15px, 1.3vw, 26px);
+  font-weight: 700;
+  color: #3d1500;
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 8px #fff8, 0 1px 0 #fff8;
+}
+
+.char-select-line {
+  width: min(112px, 18vw);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #c8922a, transparent);
+  margin: 0 auto 1rem;
+}
+
+.char-select-sub {
+  max-width: 720px;
+  font-family: var(--font-romantic);
+  font-size: clamp(14px, 0.95vw, 17px);
+  color: #5a2800;
+  font-style: italic;
+  line-height: 1.6;
+  margin: 0 auto 1.5rem;
+  text-shadow: 0 1px 6px #fff8;
+}
+
+.char-select-list {
+  width: min(100%, 900px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 1.4vw, 24px);
+  margin-bottom: clamp(14px, 1.8vh, 24px);
+}
+
+.char-select-item {
+  appearance: none;
+  border: none;
+  background: none;
+  border-radius: 0;
+  padding: 8px 0;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+  text-align: center;
+  box-shadow: none;
+  min-width: 0;
+}
+
+.char-select-item:hover,
+.char-select-item.selected {
+  transform: translateY(-2px) scale(1.03);
+  background: none;
+  box-shadow: none;
+}
+
+.char-select-avatar {
+  width: clamp(84px, 6vw, 104px);
+  height: clamp(84px, 6vw, 104px);
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.char-select-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.char-select-name {
+  font-family: var(--font-romantic-display);
+  font-size: clamp(19px, 1.35vw, 25px);
+  font-weight: 700;
+  color: #5a2800;
+  margin-bottom: 6px;
+  text-shadow: 0 1px 6px #fff8;
+}
+
+.char-select-item.selected .char-select-name {
+  color: #3d1500;
+}
+
+.char-select-item-desc {
+  max-width: 235px;
+  margin: 0 auto;
+  font-family: var(--font-romantic);
+  font-size: clamp(12px, 0.82vw, 15px);
+  line-height: 1.45;
+  color: #6a4a28;
+  font-style: italic;
+  min-height: 48px;
+  text-shadow: 0 1px 6px #fff8;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+
+.char-select-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  padding-bottom: 6px;
+}
+
+.char-select-btn {
+  min-width: 220px;
+  padding: 14px 34px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #bfa76a 0%, #a98a4a 100%);
+  color: #3d1500;
+  font-family: var(--font-romantic-display);
+  font-size: clamp(18px, 1.2vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
+  box-shadow: 0 2px 16px 0 #0001;
+  text-shadow: 0 1px 6px #fff8;
+}
+
+.char-select-btn:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.04);
+  filter: drop-shadow(0 4px 12px rgba(122,74,16,0.18));
+  background: linear-gradient(180deg, #e7d7b1 0%, #bfa76a 100%);
+}
+
+.char-select-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px), (max-height: 760px) {
+  #charSelectModal {
+    padding: 16px;
+  }
+
+  .char-select-content {
+    width: min(96vw, calc(90vh * 1462 / 667));
+    max-height: 90vh;
+  }
+
+  .char-select-inner {
+    inset: 14% 11.5% 14%;
+  }
+
+  .char-select-sub {
+    margin-bottom: 1.1rem;
+  }
+
+  .char-select-list {
+    gap: 12px;
+  }
+
+  .char-select-item-desc {
+    max-width: 210px;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 760px) {
+  #charSelectModal {
+    padding: 12px;
+  }
+
+  .char-select-content {
+    width: min(96vw, 720px);
+    max-height: none;
+    aspect-ratio: auto;
+    background: linear-gradient(180deg, #f1dfb4 0%, #e6cf97 100%);
+    border: 1px solid rgba(122,74,16,0.16);
+    border-radius: 20px;
+    box-shadow: 0 18px 48px rgba(0,0,0,0.28);
+  }
+
+  .char-select-inner {
+    position: static;
+    inset: auto;
+    padding: 24px 20px 22px;
+  }
+
+  .char-select-title {
+    font-size: 24px;
+  }
+
+  .char-select-sub {
+    font-size: 14px;
+    margin-bottom: 1rem;
+  }
+
+  .char-select-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .char-select-item {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    align-items: center;
+    gap: 12px;
+    text-align: left;
+    padding: 10px 0;
+  }
+
+  .char-select-avatar {
+    width: 72px;
+    height: 72px;
+    margin: 0;
+  }
+
+  .char-select-copy {
+    min-width: 0;
+  }
+
+  .char-select-name {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .char-select-item-desc {
+    max-width: none;
+    min-height: auto;
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .char-select-btn {
+    width: 100%;
+    min-width: 0;
+    font-size: 16px;
+  }
+}
+
 </style>
 </head>
 <body>
 
 
+<!-- Karakter seçimi modalı -->
+<div id="charSelectModal" aria-labelledby="charSelectTitle" aria-modal="true" role="dialog">
+  <div class="char-select-content">
+    <div class="char-select-inner">
+      <div class="char-select-title" id="charSelectTitle">Karakterini Seç, Rotayı Keşfet</div>
+      <div class="char-select-line"></div>
+      <div class="char-select-sub">İstanbul rotasını üç farklı anlatıcıdan biriyle deneyimle. Seçimini yaptıktan sonra harita açılacak.</div>
+      <div class="char-select-list" id="charSelectList">
+        <!-- Karakterler buraya JS ile eklenecek -->
+      </div>
+      <div class="char-select-actions">
+        <button class="char-select-btn" id="charSelectBtn" disabled>Rotayı Başlat</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="scrollIntro" style="display:none;">
   <div id="scrollWrapper">
@@ -919,16 +1264,15 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
     <div class="reset-sub">Tüm ziyaret işaretleri silinecek. Emin misiniz?</div>
     <div class="modal-btns">
       <button class="modal-btn modal-btn-cancel" onclick="closeResetModal()">
-        <img src="./asset/vazgeç.png" alt="Vazgeç" loading="lazy" decoding="async" />
+        <img src="./asset/vazgeç.webp" alt="Vazgeç" loading="lazy" decoding="async" />
       </button>
       <button class="modal-btn modal-btn-confirm" onclick="confirmReset()">
-        <img src="./asset/sıfırla.png" alt="Sıfırla" loading="lazy" decoding="async" />
+        <img src="./asset/sıfırla.webp" alt="Sıfırla" loading="lazy" decoding="async" />
       </button>
     </div>
   </div>
 </div>
-
-<div id="app">
+<div id="app" class="char-select-hidden">
   <div id="mapContainer">
     <svg id="svgMap" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
       <defs>
@@ -1055,7 +1399,7 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
       <text x="450" y="578" text-anchor="middle" font-family="IM Fell English,serif" font-size="9" fill="rgba(80,40,10,0.5)" font-style="italic">Tarihi yarımadayı bizzat keşfetmenizi tavsiye ederiz · Bir durağa tıklayarak başlayın</text>
     </svg>
 
-    <div id="mapLegend"><img src="./asset/efsane.png" alt="Harita efsanesi"/></div>
+    <div id="mapLegend"><img src="./asset/efsane.webp" alt="Harita efsanesi"/></div>
 
     <div id="topRightButtons">
     <button class="map-btn" id="notebookBtn" onclick="toggleNotebook()" title="Rota Defteri">
@@ -1063,14 +1407,14 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
     </button>
 
     <div id="notebookPanel">
-      <div class="nb-header"><span class="nb-title">ROTA DEFTERİ</span><button class="nb-close" onclick="toggleNotebook()" aria-label="Kapat">
-        <img src="asset/close.png" alt="Kapat" style="width:100%; height:100%; object-fit:contain; pointer-events:none;" />
+      <div class="nb-header"><span class="nb-title">ROTA DEFTERİ</span><button class="nb-close" onclick="toggleNotebook()" aria-label="Kapat" style="background:transparent;box-shadow:none;border:none;padding:0;">
+        <img src="asset/close.webp" alt="Kapat" style="width:100%; height:100%; object-fit:contain; pointer-events:none; background:none; box-shadow:none; border:none;" />
       </button></div>
       <div class="nb-body" id="notebookBody"></div>
     </div>
 
     <button class="map-btn" id="cardBtn" onclick="showRotaCard()" title="Kişisel Rota Kartım">
-    <img id="cardBtnImg" src=" asset/karakterler/1-patişah.png" alt="Rota Kartım" />
+    <img id="cardBtnImg" src=" asset/karakterler/1-patişah.webp" alt="Rota Kartım" />
     </button>
     </div>
 
@@ -1078,30 +1422,30 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
       <div id="rotaCard">
         <div class="card-header">
           <button class="card-close-btn" onclick="hideRotaCard()" aria-label="Kapat">
-            <img src="asset/close.png" alt="Kapat" style="width:100%; height:100%; object-fit:contain; pointer-events:none;" />
+            <img src="asset/close.webp" alt="Kapat" style="width:100%; height:100%; object-fit:contain; pointer-events:none;" />
           </button>
-          <div class="card-seal"><img src="asset/karakterler/1-patişah.png" alt="Patişah" loading="lazy" decoding="async"/></div>
+          <div class="card-seal"><img src="asset/karakterler/1-patişah.webp" alt="Patişah" loading="lazy" decoding="async"/></div>
         <div class="char-picker">
           <div class="char-picker-label">HER KARAKTER YENİ HİKAYE</div>
           <div class="char-carousel">
-            <div class="char-item active" onclick="selectChar(this, 'Patişah')" data-normal-src="asset/karakterler/1-patişah.png" data-blink-src="asset/karakterler/1-patişah-blink.png">
+            <div class="char-item active" onclick="selectChar(this, 'Patişah')" data-normal-src="asset/karakterler/1-patişah.webp" data-blink-src="asset/karakterler/1-patişah-blink.webp">
               <div class="char-avatar has-blink">
-                <img class="char-base-img" src="asset/karakterler/1-patişah.png" alt="Patişah" loading="lazy" decoding="async"/>
-                <img class="char-blink-img" src="asset/karakterler/1-patişah-blink.png" loading="lazy" decoding="async" alt="Patişah göz kırpma"/>
+                <img class="char-base-img" src="asset/karakterler/1-patişah.webp" alt="Patişah" loading="lazy" decoding="async"/>
+                <img class="char-blink-img" src="asset/karakterler/1-patişah-blink.webp" loading="lazy" decoding="async" alt="Patişah göz kırpma"/>
               </div>
               <div class="char-name-label">Patişah</div>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'Miyavşer')" data-normal-src="asset/karakterler/2-miyavşer.png" data-blink-src="asset/karakterler/2-miyavşer-blink.png">
+            <div class="char-item" onclick="selectChar(this, 'Miyavşer')" data-normal-src="asset/karakterler/2-miyavşer.webp" data-blink-src="asset/karakterler/2-miyavşer-blink.webp">
               <div class="char-avatar has-blink">
-                <img class="char-base-img" src="asset/karakterler/2-miyavşer.png" alt="Miyavşer" loading="lazy" decoding="async"/>
-                <img class="char-blink-img" src="asset/karakterler/2-miyavşer-blink.png" loading="lazy" decoding="async" alt="Miyavşer göz kırpma"/>
+                <img class="char-base-img" src="asset/karakterler/2-miyavşer.webp" alt="Miyavşer" loading="lazy" decoding="async"/>
+                <img class="char-blink-img" src="asset/karakterler/2-miyavşer-blink.webp" loading="lazy" decoding="async" alt="Miyavşer göz kırpma"/>
               </div>
               <div class="char-name-label">Miyavşer</div>
             </div>
-            <div class="char-item" onclick="selectChar(this, 'Tırmıkzade')" data-normal-src="asset/karakterler/3-tırmıkzade.png" data-blink-src="asset/karakterler/3-tırmıkzade-blink.png">
+            <div class="char-item" onclick="selectChar(this, 'Tırmıkzade')" data-normal-src="asset/karakterler/3-tırmıkzade.webp" data-blink-src="asset/karakterler/3-tırmıkzade-blink.webp">
               <div class="char-avatar has-blink">
-                <img class="char-base-img" src="asset/karakterler/3-tırmıkzade.png" alt="Tırmıkzade" loading="lazy" decoding="async"/>
-                <img class="char-blink-img" src="asset/karakterler/3-tırmıkzade-blink.png" loading="lazy" decoding="async" alt="Tırmıkzade göz kırpma"/>
+                <img class="char-base-img" src="asset/karakterler/3-tırmıkzade.webp" alt="Tırmıkzade" loading="lazy" decoding="async"/>
+                <img class="char-blink-img" src="asset/karakterler/3-tırmıkzade-blink.webp" loading="lazy" decoding="async" alt="Tırmıkzade göz kırpma"/>
               </div>
               <div class="char-name-label">Tırmıkzade</div>
             </div>
@@ -1142,7 +1486,7 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
 
     <div class="progress-bar-wrap">
       <div class="progress-bar-viewport">
-      <img class="progress-bar-art" src="./asset/bar.png" alt="Rota bar" onerror="this.onerror=null;this.style.display='none';" />
+      <img class="progress-bar-art" src="./asset/bar.webp" alt="Rota bar" onerror="this.onerror=null;this.style.display='none';" />
       </div>
       <div class="progress-bar-overlay">
         <span class="progress-label">ROTA</span>
@@ -1161,7 +1505,7 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
   <div id="overlay" onclick="handleOverlayClick(event)">
     <div id="popup">
       <button class="popup-close" onclick="closePopup()" aria-label="Kapat">
-        <img src="asset/close.png" alt="Kapat" style="width:100%; height:100%; object-fit:contain; pointer-events:none;" />
+        <img src="asset/close.webp" alt="Kapat" style="width:100%; height:100%; object-fit:contain; pointer-events:none;" />
       </button>
       <div class="popup-inner">
         <div class="popup-img-wrap">
@@ -1198,9 +1542,9 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
             <div class="diary-saved" id="diarySaved">✓ Kaydedildi</div>
           </div>
           <div class="action-bar">
-            <button class="nav-btn" id="prevBtn" onclick="navigate(-1)"><img src="./asset/left-arrow.png" width="70" height="28" loading="lazy" decoding="async" style="display:block;pointer-events:none;"/></button>
-            <button class="visit-btn" id="visitBtn" onclick="toggleVisit()"><img src="./asset/button.png" alt="Ziyaret Ettim" loading="lazy" decoding="async" style="display:block;pointer-events:none;width:min(176px,33.6vw);height:auto;max-width:none;" id="visitBtnImg"/><span id="visitBtnText" style="display:none;">Ziyaret Ettim</span></button>
-            <button class="nav-btn" id="nextBtn" onclick="navigate(1)"><img src="./asset/rigt-arrow.png" width="70" height="28" loading="lazy" decoding="async" style="display:block;pointer-events:none;"/></button>
+            <button class="nav-btn" id="prevBtn" onclick="navigate(-1)"><img src="./asset/left-arrow.webp" width="70" height="28" loading="lazy" decoding="async" style="display:block;pointer-events:none;"/></button>
+            <button class="visit-btn" id="visitBtn" onclick="toggleVisit()"><img src="./asset/button.webp" alt="Ziyaret Ettim" loading="lazy" decoding="async" style="display:block;pointer-events:none;width:min(176px,33.6vw);height:auto;max-width:none;" id="visitBtnImg"/><span id="visitBtnText" style="display:none;">Ziyaret Ettim</span></button>
+            <button class="nav-btn" id="nextBtn" onclick="navigate(1)"><img src="./asset/right-arrow.webp" width="70" height="28" loading="lazy" decoding="async" style="display:block;pointer-events:none;"/></button>
           </div>
         </div>
       </div>
@@ -1210,6 +1554,148 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
 </div>
 
 <script>
+
+const CHARACTER_STORAGE_KEY = 'selectedCharacter';
+const CHARACTER_NAME_STORAGE_KEY = 'ior_char';
+
+// Karakterler ve tanıtım yazıları
+const CHARACTERS = [
+  {
+    key: 'patisah',
+    name: 'Patişah',
+    img: 'asset/karakterler/1-patişah.webp',
+    desc: 'Sokakların ritmini bilen, tarihi mahalleleri hikâye tadında anlatan saray kedisi.'
+  },
+  {
+    key: 'miyavser',
+    name: 'Miyavşer',
+    img: 'asset/karakterler/2-miyavşer.webp',
+    desc: 'Her durakta başka bir lezzet ve küçük sürpriz bulan, meraklı ve kıvrak gezgin.'
+  },
+  {
+    key: 'tirmikzade',
+    name: 'Tırmıkzade',
+    img: 'asset/karakterler/3-tırmıkzade.webp',
+    desc: 'Yapıların tekniğine, şehrin katmanlarına ve tarihî detaylara dikkat kesilen anlatıcı.'
+  }
+];
+
+function getCharacterByKey(key) {
+  return CHARACTERS.find(function(char){ return char.key === key; }) || null;
+}
+
+function getCharacterByName(name) {
+  return CHARACTERS.find(function(char){ return char.name === name; }) || null;
+}
+
+function getStoredCharacter() {
+  var storedKey = localStorage.getItem(CHARACTER_STORAGE_KEY);
+  if (storedKey) return getCharacterByKey(storedKey);
+
+  var storedName = localStorage.getItem(CHARACTER_NAME_STORAGE_KEY);
+  if (storedName) return getCharacterByName(storedName);
+
+  return null;
+}
+
+function showCharSelectModal() {
+  var modal = document.getElementById('charSelectModal');
+  if (modal) modal.classList.add('show');
+}
+
+function hideCharSelectModal() {
+  var modal = document.getElementById('charSelectModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function setAppVisibilityForCharSelect(isVisible) {
+  var app = document.getElementById('app');
+  if (!app) return;
+  app.classList.toggle('char-select-hidden', !isVisible);
+}
+
+function syncCardCharacterSelection(name) {
+  var items = document.querySelectorAll('.char-item');
+  items.forEach(function(item) {
+    var label = item.querySelector('.char-name-label');
+    var isActive = label && label.textContent.trim() === name;
+    item.classList.toggle('active', !!isActive);
+    if (isActive) selectChar(item, name);
+  });
+}
+
+function renderCharSelectModal() {
+  var list = document.getElementById('charSelectList');
+  var btn = document.getElementById('charSelectBtn');
+  if (!list || !btn) return;
+
+  var storedCharacter = getStoredCharacter();
+  var selectedCharacter = null;
+  list.innerHTML = '';
+
+  CHARACTERS.forEach(function(char) {
+    var item = document.createElement('button');
+    item.className = 'char-select-item';
+    item.type = 'button';
+    item.setAttribute('aria-pressed', 'false');
+    // Use the blink structure for modal avatars
+    var baseImg = char.img;
+    var blinkImg = char.img.replace('.webp', '-blink.webp');
+    item.innerHTML =
+      '<div class="char-select-avatar char-avatar has-blink">' +
+        '<img class="char-base-img" src="' + baseImg + '" alt="' + char.name + '">' +
+        '<img class="char-blink-img" src="' + blinkImg + '" alt="' + char.name + ' göz kırpma">' +
+      '</div>' +
+      '<div class="char-select-copy">' +
+        '<div class="char-select-name">' + char.name + '</div>' +
+        '<div class="char-select-item-desc">' + char.desc + '</div>' +
+      '</div>';
+
+    function selectModalCharacter() {
+      selectedCharacter = char;
+      Array.from(list.children).forEach(function(el) {
+        el.classList.remove('selected');
+        el.setAttribute('aria-pressed', 'false');
+      });
+      item.classList.add('selected');
+      item.setAttribute('aria-pressed', 'true');
+      btn.disabled = false;
+    }
+
+    item.addEventListener('click', selectModalCharacter);
+    item.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        selectModalCharacter();
+      }
+    });
+
+    list.appendChild(item);
+  });
+
+  btn.disabled = true;
+  btn.onclick = function() {
+    if (!selectedCharacter) return;
+    localStorage.setItem(CHARACTER_STORAGE_KEY, selectedCharacter.key);
+    localStorage.setItem(CHARACTER_NAME_STORAGE_KEY, selectedCharacter.name);
+    setAppVisibilityForCharSelect(true);
+    hideCharSelectModal();
+    syncCardCharacterSelection(selectedCharacter.name);
+  };
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  renderCharSelectModal();
+  setAppVisibilityForCharSelect(false);
+
+  var storedCharacter = getStoredCharacter();
+  if (storedCharacter) {
+    syncCardCharacterSelection(storedCharacter.name);
+  }
+
+  showCharSelectModal();
+});
+
 // Karakter göz kırpma efekti (daha doğal)
 let isBlinking = false;
 function startCharBlinking() {
@@ -1247,91 +1733,91 @@ function walkMin(a,b){ return Math.round(haversine(a,b)/4.5*60*1.25); }
 function walkKm(a,b){ return haversine(a,b).toFixed(1); }
 
 const stops = [
-  { id:1,  name:"Eminönü",          coords:[41.0166,28.9700], type:"Liman & Ticaret Meydanı", img:"./asset/stops/eminonu.png",
+  { id:1,  name:"Eminönü",          coords:[41.0166,28.9700], type:"Liman & Ticaret Meydanı", img:"./asset/stops/eminonu.webp",
     descs: {
       1: "Eminönü sabahları hep aceleyle uyanır; martılar bağırır, vapurlar homurdanır, insanlar bir yerlere yetişirken ben çoktan günün en sıcak taşını seçmiş olurum. Burada tarih, telaşın içine gizlenmiş halde akar.",
       2: "Eminönü’nün telaşına en çok demirhindi yakışır; ekşisiyle tatlısı birbirine karışır, tıpkı meydanın kalabalığı gibi. İlk yudumda yüzü buruşturur, ikinci yudumda tiryakisi olursun.",
       3: "Bir şehri anlamak için anıtlarına değil, düğüm noktalarına bakacaksın. Eminönü, limanla çarşının birbirine geçtiği yerde İstanbul’un nabzını açık eder."
     }
   },
-  { id:2,  name:"Rıza Paşa Yokuşu", coords:[41.0172,28.9662], type:"Tarihi Sokak", img:"./asset/stops/riza-pasa-yokusu.png",
+  { id:2,  name:"Rıza Paşa Yokuşu", coords:[41.0172,28.9662], type:"Tarihi Sokak", img:"./asset/stops/riza-pasa-yokusu.webp",
     descs: {
       1: "Bu yokuşu çıkan herkes önce nefesiyle sınanır, sonra manzarayla ödüllendirilir. Ben yıllardır bu taş basamakların hangi köşesinin kışın daha sıcak, yazın daha serin olduğunu bilirim.",
       2: "Bu yokuşu çıkarken dudaklarını nar şerbeti serinletmeli; rengi gibi tadı da gösterişlidir. Hafif mayhoşluğu, yolun yorgunluğunu alır.",
       3: "Bu yokuş sadece yol değil; topografyanın yapıları nasıl hizaya soktuğunu gösteren canlı bir kesit. Eğim arttıkça sokak da cephe de başka davranır."
     }
   },
-  { id:3,  name:"Süleymaniye Camii",coords:[41.0163,28.9639], type:"Osmanlı Şaheseri", img:"./asset/stops/suleymaniye-camii.png",
+  { id:3,  name:"Süleymaniye Camii",coords:[41.0163,28.9639], type:"Osmanlı Şaheseri", img:"./asset/stops/suleymaniye-camii.webp",
     descs: {
       1: "Süleymaniye’nin avlusuna girince sesler bile ağırlaşır. İnsan burada sadece yukarı bakmaz; rüzgârın kubbeye çarpışını, taşın sabrını, gölgenin huzurunu da hisseder.",
       2: "Süleymaniye’nin vakarına en çok gül şerbeti gider. Kokusu fazla konuşmaz ama içene zarif bir ferahlık bırakır; tam bu avlunun huyuna uygun.",
       3: "Sinan burada yalnızca büyük bir cami yapmadı; 1550–1557 arasında şehrin siluetine ölçülü bir güç yerleştirdi. Kütle büyük, etki kuvvetli, ama denge kusursuz."
     }
   },
-  { id:4,  name:"Küçük Pazar",      coords:[41.0175,28.9612], type:"Tarihi Pazar & Mahalle", img:"./asset/stops/kucuk-pazar.png",
+  { id:4,  name:"Küçük Pazar",      coords:[41.0175,28.9612], type:"Tarihi Pazar & Mahalle", img:"./asset/stops/kucuk-pazar.webp",
     descs: {
       1: "Küçükpazar’da sokaklar birbirine bir şey fısıldar sanki. Dükkân önlerinden geçerken kokular değişir, yüzler değişir ama duvarların eskiliği aynı kalır.",
       2: "Küçükpazar’ın hareketine biraz baharat gerek. Tarçınlı elma şerbeti burada hem tanıdık hem eski zamanlı bir misafir gibi gelir insana.",
       3: "Küçükpazar’da mimarlık süsten çok işleve yaslanır. Sokak, yük, dükkân ve hareket aynı düzenin parçasıdır."
     }
   },
-  { id:5,  name:"Zeyrek",           coords:[41.0197,28.9568], type:"Bizans & Osmanlı Mahallesi", img:"./asset/stops/zeyrek.png",
+  { id:5,  name:"Zeyrek",           coords:[41.0197,28.9568], type:"Bizans & Osmanlı Mahallesi", img:"./asset/stops/zeyrek.webp",
     descs: {
       1: "Zeyrek, biraz yorgun ama çok şey bilen bir ihtiyar gibidir. Ahşap evlerin arasından yürürken insan kendini bir semtte değil, eski bir hatıranın içinde sanır.",
       2: "Zeyrek’in hafif hüzünlü sokaklarına vişne yakışır. Rengi derin, tadı içli; semtin ahşap evleri gibi biraz yorgun ama akılda kalıcı.",
       3: "Zeyrek’te yalnız semti değil, Bizans’tan Osmanlı’ya taşınan bir yapı hafızasını da okursun. Bugünkü Zeyrek Camii, eski Pantokrator Manastırı kompleksinin en önemli kalıntılarındandır."
     }
   },
-  { id:6,  name:"Çarşamba",         coords:[41.0222,28.95],   type:"Geleneksel Semt", img:"./asset/stops/carsamba.png",
+  { id:6,  name:"Çarşamba",         coords:[41.0222,28.95],   type:"Geleneksel Semt", img:"./asset/stops/carsamba.webp",
     descs: {
       1: "Çarşamba’nın sokaklarında düzen başka türlü kurulur; burada adımlar daha ölçülü, bakışlar daha dikkatlidir. Mahalle kendi ritmini korur, sen de fark etmeden ona uyarsın.",
       2: "Çarşamba’da reyhan şerbeti içilir; ölçülüdür, sakindir, ferahlığı sonradan açılır. Bu mahallenin kendine has duruşu gibi, gösterişsiz ama karakterli.",
       3: "Burada anıtsallık değil, mahalle ölçeği konuşur. Sokak genişliğiyle gündelik hayat arasındaki ilişki daha kontrollü ve daha içe dönüktür."
     }
   },
-  { id:7,  name:"Balat",            coords:[41.0232,28.9467], type:"Tarihi Yahudi & Rum Semti", img:"./asset/stops/balat.png",
+  { id:7,  name:"Balat",            coords:[41.0232,28.9467], type:"Tarihi Yahudi & Rum Semti", img:"./asset/stops/balat.webp",
     descs: {
       1: "Balat’ta her köşe başka renge açılır ama ben en çok duvar diplerini severim; çünkü şehrin en iyi hikâyeleri gösterişli cephelerde değil, sessiz eşiklerde saklanır. Burada her pencere, içeride başka bir zaman tuttuğunu hissettirir.",
       2: "Balat renkli diye herkes bağıran tatlar bekler ama ben hibiskusu seçerim. Hafif ekşiliğiyle canlıdır; tam semtin sürprizli ruhu gibi.",
       3: "Balat’ın asıl gücü renginde değil, parsel ritminde saklıdır. Dar cepheler ve bitişik düzen, semtin hafızasını ayakta tutar."
     }
   },
-  { id:8,  name:"Ayvansaray",       coords:[41.0292,28.9422], type:"Haliç Kıyısı & Surlar", img:"./asset/stops/ayvansaray.png",
+  { id:8,  name:"Ayvansaray",       coords:[41.0292,28.9422], type:"Haliç Kıyısı & Surlar", img:"./asset/stops/ayvansaray.webp",
     descs: {
       1: "Ayvansaray’da surlara yaklaşınca İstanbul birden yaşını gösterir. Taşlar bana hep aynı şeyi söyler: İnsan gelir geçer, şehir kalır.",
       2: "Surlara yakın yerlerde üzüm şerbeti içmenin başka bir ağırlığı vardır. Tadında biraz toprak, biraz eski bağların hayali dolaşır.",
       3: "Ayvansaray’da surla mahalle yan yana durur. Büyük savunma yapısıyla küçük ölçekli yaşamın aynı kadraja girmesi, İstanbul’un en güçlü tezatlarından biridir."
     }
   },
-  { id:9,  name:"Edirnekapı",       coords:[41.0315,28.928],  type:"Tarihi Kapı & Sur", img:"./asset/stops/edirnekapi.png",
+  { id:9,  name:"Edirnekapı",       coords:[41.0315,28.928],  type:"Tarihi Kapı & Sur", img:"./asset/stops/edirnekapi.webp",
     descs: {
       1: "Edirnekapı yüksekten bakmayı sever; rüzgârı daha serindir, ufku daha geniştir. Buraya gelince yürüdüğün yolun sadece sokaklardan değil, yüzyıllardan geçtiğini anlarsın.",
       2: "Burada hava biraz daha sert eser; o yüzden zencefilli bal şerbeti iyi gider. İçini ısıtır ama boğazını yormaz, tam yolcunun dostudur.",
       3: "Bu hatta kara surlarının gerçek mantığı görünür: erken 5. yüzyılda kurulan Theodosios sistemi, yalnız duvar değil çok katmanlı bir savunma kurgusudur."
     }
   },
-  { id:10, name:"Kariye Camii",     coords:[41.0302,28.9268], type:"Bizans Mozaik Hazinesi", img:"./asset/stops/kariye-camii.png",
+  { id:10, name:"Kariye Camii",     coords:[41.0302,28.9268], type:"Bizans Mozaik Hazinesi", img:"./asset/stops/kariye-camii.webp",
     descs: {
       1: "Kariye’nin çevresinde zaman daha ince akar. İnsan bazen bir yapının içine girmeden de onun ne kadar derin olduğunu hisseder; işte burası öyle bir yer.",
       2: "Kariye’nin ince işçiliğine ben en çok safranı yakıştırırım. Az bulunur, tadı dikkat ister; tıpkı buranın fark edilmesi için biraz yavaşlaman gerektiği gibi.",
       3: "Kariye, ölçü olarak sakin ama içerik olarak çok yoğundur. Geç Bizans döneminin en kıymetli mozaik ve fresklerinden bazılarını taşıması onu sıradan bir yapı olmaktan çıkarır."
     }
   },
-  { id:11, name:"Yedikule Hisarı",  coords:[40.9997,28.9192], type:"Kale & Savunma Yapısı", img:"./asset/stops/yedikule-hisari.png",
+  { id:11, name:"Yedikule Hisarı",  coords:[40.9997,28.9192], type:"Kale & Savunma Yapısı", img:"./asset/stops/yedikule-hisari.webp",
     descs: {
       1: "Yedikule’nin taşları serttir ama hikâyeleri daha da serttir. Ben burada hep biraz daha yavaş yürürüm; çünkü bazı yerler hızla geçilmeyi sevmez.",
       2: "Yedikule’de hafif tatlar sökmez; keçiboynuzu gibi koyu ve tok bir şey gerekir. İçince sanki taş duvarların gölgesi damağında kalır.",
       3: "Yedikule’de mimari doğrudan güç diliyle konuşur. Mehmed II tarafından 1457–1458’de, Altın Kapı hattını da içine alacak biçimde tahkim edilen bu yapı, savunma ile devlet otoritesini aynı bedende toplar."
     }
   },
-  { id:12, name:"Beyazıt",          coords:[41.0108,28.964],  type:"Osmanlı Meydanı & Akademi", img:"./asset/stops/beyazit.png",
+  { id:12, name:"Beyazıt",          coords:[41.0108,28.964],  type:"Osmanlı Meydanı & Akademi", img:"./asset/stops/beyazit.webp",
     descs: {
       1: "Beyazıt, kalabalığın ortasında bile eski ciddiyetini korur. Kitap kokusuyla meydan rüzgârı birbirine karışır; burada insanın aklı da yolu da biraz genişler.",
       2: "Beyazıt’ın meydanına kızılcık şerbeti yakışır; diri, net, kendinden emin. İnsan kalabalığın ortasında bile o ekşi serinliği unutmaz.",
       3: "Beyazıt bir meydandan fazlasıdır; eğitim, ticaret ve geçiş burada aynı kamusal zeminde birleşir. Bazı yerler bina değil, şehir davranışı üretir."
     }
   },
-  { id:13, name:"Sultanahmet",      coords:[41.0054,28.976],  type:"İmparatorlukların Buluşma Noktası", img:"./asset/stops/sultanahmet.png",
+  { id:13, name:"Sultanahmet",      coords:[41.0054,28.976],  type:"İmparatorlukların Buluşma Noktası", img:"./asset/stops/sultanahmet.webp",
     descs: {
       1: "Sultanahmet’e vardığında şehir sana son kez büyük konuşur. Benim için burası yolun sonu değil; İstanbul’un, kendini bir kez daha hayranlıkla izlettirdiği yerdir.",
       2: "Sultanahmet’e geldiğinde final büyük olmalı; tarçın, karanfil, gül, meyve… Hepsi bir araya gelir. Çünkü bazı duraklar tek tatla anlatılamaz, ancak bir karışım kadar zengin olabilir.",
@@ -1393,9 +1879,9 @@ function openStop(id){
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
-  imgLeft.src = './asset/stops/' + stopKey + '-1.png';
-  img.src     = './asset/stops/' + stopKey + '-2.png';
-  imgRight.src= './asset/stops/' + stopKey + '-3.png';
+  imgLeft.src = './asset/stops/' + stopKey + '-1.webp';
+  img.src     = './asset/stops/' + stopKey + '-2.webp';
+  imgRight.src= './asset/stops/' + stopKey + '-3.webp';
   document.getElementById('popupType').textContent=s.type;
   document.getElementById('popupHours').textContent=s.hours ? '🕐 ' + s.hours : '';
   document.getElementById('popupTitle').textContent=s.name;
@@ -1588,7 +2074,7 @@ function updateVisitBtn(id){
   var img = document.getElementById('visitBtnImg');
   btn.classList.remove('visited-active');
   t.textContent = 'Ziyaret Ettim';
-  img.src = './asset/button.png';
+  img.src = './asset/button.webp';
 }
 function updateAllMarkers(){
   document.querySelectorAll('.stop-marker').forEach(function(el){
@@ -1883,21 +2369,14 @@ function initCharacterBlink(){
     if(avatar) avatar.addEventListener('pointerleave', resetBlink);
   });
 }
-// Sayfa her açıldığında varsayılan karakter olarak Patişah ile başlat
+
+// Karakter kartlarındaki hover blink efektini aktif et
 window.addEventListener('DOMContentLoaded', function() {
   initCharacterBlink();
-  var items = document.querySelectorAll('.char-item');
-  var selectedItem = null;
 
-  items.forEach(function(item) {
-    var label = item.querySelector('.char-name-label');
-    if (label && label.textContent.trim() === 'Patişah') selectedItem = item;
-  });
-
-  try { localStorage.setItem('ior_char', 'Patişah'); } catch(e) {}
-
-  if (selectedItem) {
-    selectChar(selectedItem, 'Patişah');
+  var storedCharacter = getStoredCharacter();
+  if (storedCharacter) {
+    syncCardCharacterSelection(storedCharacter.name);
   }
 });
 
