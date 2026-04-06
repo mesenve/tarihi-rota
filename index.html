@@ -792,14 +792,14 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
   background: rgba(10,4,0,0.75);
   display: none; align-items: center; justify-content: center;
   overflow: hidden;
-  padding: 12px 8px;
+  padding: 1rem;
 }
 #cardOverlay.show { display: flex; }
 /* ROTA KİMLİK KARTI eski stil */
 /* ROTA KİMLİK KARTI eski stil */
 #rotaCard {
   max-width: 396px;
-  width: min(396px, calc(100vw - 16px));
+  width: calc(100% - 32px);
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -918,8 +918,8 @@ html, body { width: 100vw; height: 100vh; min-width: 100vw; min-height: 100vh; o
 .share-btn { min-width:0; }
 
 @media (max-width: 480px), (max-height: 760px) {
-  #cardOverlay { padding: 8px; }
-  #rotaCard { max-width: 396px; width: calc(100vw - 16px); }
+  #cardOverlay { padding: 1rem; }
+  #rotaCard { max-width: 396px; width: calc(100% - 32px); max-height: 88vh; }
   .card-close-btn { top: 18px; right: 10px; z-index: 4; }
   .card-body { padding: 0.85rem calc(1rem + 10px) 1rem; }
   .popup-body { padding: 0.425rem 2rem 0.9rem; }
